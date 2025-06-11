@@ -4,8 +4,6 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "pnpm start",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 100
+    "startCommand": "pnpm start"
   }
 }

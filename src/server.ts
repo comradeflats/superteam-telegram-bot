@@ -1,5 +1,13 @@
 import express from 'express';
-import './bot/index'; // This starts the bot
+
+console.log('🚀 Starting Superteam Telegram Bot...');
+
+// Start the bot
+import('./bot/index').then(() => {
+  console.log('✅ Bot module loaded successfully');
+}).catch((error) => {
+  console.error('❌ Error loading bot module:', error);
+});
 
 const app = express();
 
@@ -14,12 +22,15 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Superteam Earn Telegram Bot is running!',
-    status: 'active'
+    status: 'active',
+    timestamp: new Date().toISOString()
   });
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log('Bot and health check server started');
+const host = '0.0.0.0'; // Important for Railway
+
+app.listen(port, host, () => {
+  console.log(`✅ Server running on ${host}:${port}`);
+  console.log(`✅ Health check available at http://${host}:${port}/health`);
 });
