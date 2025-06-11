@@ -3,12 +3,27 @@ import { BotContext } from '../../types';
 import { createOrUpdateUser } from '../utils/database';
 import { sendTemporaryError } from '../utils/errorHandler';
 
+// Track active start messages per user
+const activeStartMessages = new Map<string, number>();
+
 export async function handleStart(ctx: BotContext) {
   try {
     if (!ctx.from) return;
     
+    const userId = ctx.from.id.toString();
+    
+    // Delete previous start message if exists
+    const previousMessageId = activeStartMessages.get(userId);
+    if (previousMessageId) {
+      try {
+        await ctx.deleteMessage(previousMessageId);
+      } catch (e) {
+        // Previous message might already be deleted
+      }
+    }
+    
     await createOrUpdateUser(
-      ctx.from.id.toString(),
+      userId,
       ctx.from.username,
       ctx.from.first_name
     );
@@ -23,7 +38,11 @@ I'll help you stay updated with new bounties and projects.`;
       [Markup.button.callback('⚙️ Configure Notifications', 'start_settings')]
     ]);
 
-    await ctx.reply(message, startKeyboard);
+    const sentMessage = await ctx.reply(message, startKeyboard);
+    
+    // Track this message ID
+    activeStartMessages.set(userId, sentMessage.message_id);
+    
   } catch (error) {
     console.error('Start command error:', error);
     await sendTemporaryError(ctx, 'Sorry, there was an error starting the bot. Please try again.');

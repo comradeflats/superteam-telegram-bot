@@ -106,11 +106,14 @@ Selected: ${selectedInCategory}/${subSkills.length}
 
 Choose sub-skills for notifications:`;
 
-    // Create keyboard with sub-skills (1 per row for better readability)
-    const skillButtons = subSkills.map(skill => [{
-      text: `${currentSkills.includes(skill.value) ? '✅' : '❌'} ${skill.label}`,
-      callback_data: `toggle_skill_${skill.value}`
-    }]);
+    // Create keyboard with sub-skills - only show checkmark if selected
+    const skillButtons = subSkills.map(skill => {
+      const isSelected = currentSkills.includes(skill.value);
+      return [{
+        text: isSelected ? `✅ ${skill.label}` : skill.label,
+        callback_data: `toggle_skill_${skill.value}`
+      }];
+    });
     
     skillButtons.push([{ text: '⬅️ Back to Skills', callback_data: 'back_to_skills' }]);
 
