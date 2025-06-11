@@ -2,12 +2,11 @@
   "name": "superteam-telegram-bot",
   "version": "1.0.0",
   "description": "Telegram notification bot for Superteam Earn",
-  "main": "dist/index.js",
+  "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/bot/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "start:prod": "tsx src/bot/index.ts",
+    "build": "echo 'Build not needed for Railway deployment'",
+    "start": "tsx src/server.ts",
     "lint": "tsc --noEmit"
   },
   "keywords": [
@@ -16,25 +15,25 @@
     "superteam",
     "notifications"
   ],
-  "author": "Your Name",
+  "author": "comradeflats",
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "6.9.0",
-    "@types/cors": "2.8.19",
-    "@types/express": "5.0.3",
-    "@types/node": "24.0.0",
-    "@types/node-cron": "3.0.11",
-    "axios": "1.9.0",
-    "cors": "2.8.5",
-    "dotenv": "16.5.0",
-    "express": "5.1.0",
-    "helmet": "8.1.0",
-    "node-cron": "4.1.0",
-    "nodemon": "3.1.10",
-    "prisma": "6.9.0",
-    "telegraf": "4.16.3",
-    "tsx": "4.20.0",
-    "typescript": "5.8.3"
+    "@prisma/client": "^6.9.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "@types/node-cron": "^3.0.11",
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "node-cron": "^4.1.0",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.9.0",
+    "telegraf": "^4.16.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.3"
   },
   "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }
