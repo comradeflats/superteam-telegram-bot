@@ -2,14 +2,10 @@ import express from 'express';
 
 console.log('🚀 Starting Superteam Telegram Bot...');
 
-// Start the bot
-import('./bot/index').then(() => {
-  console.log('✅ Bot module loaded successfully');
-}).catch((error) => {
-  console.error('❌ Error loading bot module:', error);
-});
-
 const app = express();
+
+// Middleware for parsing JSON
+app.use(express.json());
 
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -28,9 +24,18 @@ app.get('/', (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-const host = '0.0.0.0'; // Important for Railway
+const host = '0.0.0.0';
 
-app.listen(port, host, () => {
+app.listen(port, host, async () => {
   console.log(`✅ Server running on ${host}:${port}`);
-  console.log(`✅ Health check available at http://${host}:${port}/health`);
+  console.log(`✅ Health check available`);
+  
+  // Import and start bot after server is ready
+  try {
+    const { setupBot } = await import('./bot/webhook-setup');
+    await setupBot(app);
+    console.log('✅ Bot webhook setup completed');
+  } catch (error) {
+    console.error('❌ Error setting up bot:', error);
+  }
 });
