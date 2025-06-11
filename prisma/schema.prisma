@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TelegramUser {
+  id          String                  @id @default(cuid())
+  telegramId  String                  @unique
+  username    String?
+  firstName   String?
+  isActive    Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  preferences NotificationPreference?
+}
+
+model NotificationPreference {
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  minUsdValue Int?
+  maxUsdValue Int?
+  bounties    Boolean      @default(true)
+  projects    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  skills      String[]
+  user        TelegramUser @relation(fields: [userId], references: [id])
+}
