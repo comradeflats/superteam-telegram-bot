@@ -102,6 +102,26 @@ const mockListings: EarnListing[] = [
     compensationType: 'fixed',
     minRewardAsk: null,
     maxRewardAsk: null
+  },
+  {
+    id: '6',
+    title: 'TypeScript API Development & Integration',
+    slug: 'typescript-api-development',
+    deadline: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000), // 18 days from now
+    usdValue: null, // Range compensation
+    token: null,
+    rewardAmount: null,
+    rewards: null,
+    type: 'project',
+    skills: ['Javascript', 'Typescript', 'Node.js'],
+    region: 'GLOBAL',
+    publishedAt: new Date(Date.now() - 13.2 * 60 * 60 * 1000), // 13.2 hours ago (should notify)
+    sponsor: {
+      name: 'Drift Protocol'
+    },
+    compensationType: 'range',
+    minRewardAsk: 3500,
+    maxRewardAsk: 7000
   }
 ];
 
