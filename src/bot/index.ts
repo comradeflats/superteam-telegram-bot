@@ -104,11 +104,11 @@ bot.on('text', async (ctx) => {
     const handled = await handleUsdInput(ctx, ctx.text);
     
     if (!handled) {
-      // Delete unrecognized messages
+      // Delete unrecognized messages with gentle guidance
       await ctx.deleteMessage();
       
-      // Send brief instruction that auto-deletes
-      const instructionMsg = await ctx.reply('Please use the menu buttons to interact with the bot.');
+      // Send brief, helpful instruction that auto-deletes
+      const instructionMsg = await ctx.reply('💡 Please use the menu buttons above to navigate. They make everything easier!');
       
       // Delete instruction after 3 seconds
       setTimeout(async () => {

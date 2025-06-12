@@ -148,7 +148,8 @@ export async function handleUsdInput(ctx: BotContext, text: string) {
     const value = parseInt(text.trim());
     
     if (isNaN(value) || value < 0) {
-      const errorMsg = await sendTemporaryError(ctx, '❌ Please enter a valid positive number.');
+      // Gentle error messages for invalid input
+      await sendTemporaryError(ctx, "💡 Please enter a valid number (like 100, 500, or 1000). You can also use the buttons above to navigate.", 4000);
       return true;
     }
 
@@ -159,7 +160,7 @@ export async function handleUsdInput(ctx: BotContext, text: string) {
     if (userState.state === 'waiting_min') {
       const currentMax = user.preferences?.maxUsdValue;
       if (currentMax && value >= currentMax) {
-        await sendTemporaryError(ctx, `❌ Minimum ($${value}) must be less than maximum ($${currentMax})`, 4000);
+        await sendTemporaryError(ctx, `💡 Minimum value ($${value}) should be less than your maximum ($${currentMax}).`, 4000);
         return true;
       }
       
@@ -171,7 +172,7 @@ export async function handleUsdInput(ctx: BotContext, text: string) {
     } else if (userState.state === 'waiting_max') {
       const currentMin = user.preferences?.minUsdValue;
       if (currentMin && value <= currentMin) {
-        await sendTemporaryError(ctx, `❌ Maximum ($${value}) must be greater than minimum ($${currentMin})`, 4000);
+        await sendTemporaryError(ctx, `💡 Maximum value ($${value}) should be greater than your minimum ($${currentMin}).`, 4000);
         return true;
       }
       
