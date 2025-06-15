@@ -10,6 +10,7 @@ A production-ready Telegram notification bot for Superteam Earn that provides us
 ## 🚀 Features
 
 - **Smart Filtering**: Notifications based on USD value range, listing type (bounties/projects), and selected skills
+- **Intuitive Interface**: Smart library navigation with urgency indicators and automated cleanup
 - **User Menu Integration**: Seamlessly accessible from Superteam Earn's user menu
 - **Personalized Notifications**: User ID context passing for tailored experiences
 - **12-Hour Delay**: Notifications sent 12 hours after listing publication as specified
