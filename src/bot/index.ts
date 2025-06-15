@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
 import { BotContext } from '../types';
-import { handleStart, handleStartSettings } from './commands/start';
+import { handleStart, handleStartSettings, handleBrowseOpportunities } from './commands/start';
 import { handleSettings } from './commands/settings';
 import { handleTestNotifications } from './commands/testNotifications';
 import { handleEarnDeepLink, handleShowExample } from './handlers/earnIntegration';
@@ -29,6 +29,26 @@ import { handleViewSettings } from './handlers/viewSettings';
 import { ParentSkills } from '../data/skills';
 import { startNotificationScheduler, startTestScheduler } from '../services/cronService';
 
+// Import library handlers
+import {
+  handleLibraryCommand,
+  handleActiveCommand,
+  handleEndingSoonCommand,
+  handleClearExpiredCommand,
+  handleMyLibraryAction,
+  handleLibraryActiveAction,
+  handleLibraryUrgentAction,
+  handleLibraryFullAction,
+  handleLibraryManage,
+  handleLibraryRemoveExpired,
+  handleLibrarySelectItems,
+  handleLibraryClearAllConfirm,
+  handleLibraryClearAllExecute,
+  handleLibraryDeleteItem,
+  handleSaveNotification,
+  handleDismissNotification
+} from './handlers/library';
+
 dotenv.config();
 
 // Create bot instance
@@ -42,18 +62,14 @@ bot.catch((err, ctx) => {
 
 // Commands
 bot.start(async (ctx) => {
-  // Check if this is a deep link from Earn with user context
   const startPayload = ctx.startPayload;
   
   if (startPayload && startPayload.startsWith('earn_')) {
-    // Deep link from Earn: /start earn_userid_123
     const earnUserId = startPayload.split('_')[2];
     await handleEarnDeepLink(ctx, earnUserId);
   } else if (startPayload === 'earn') {
-    // Simple deep link from Earn: /start earn
     await handleEarnDeepLink(ctx);
   } else {
-    // Regular start command
     await handleStart(ctx);
   }
 });
@@ -61,66 +77,81 @@ bot.start(async (ctx) => {
 bot.command('settings', handleSettings);
 bot.command('testnotify', handleTestNotifications);
 
-// Start flow
+// Library Commands (still available for power users)
+bot.command('library', handleLibraryCommand);
+bot.command('active', handleActiveCommand);
+bot.command('ending_soon', handleEndingSoonCommand);
+bot.command('clear_expired', handleClearExpiredCommand);
+
+// Basic Action Handlers
 bot.action('start_settings', handleStartSettings);
 bot.action('show_example', handleShowExample);
+bot.action('browse_opportunities', handleBrowseOpportunities);
 
-// Listing Types handlers
+// Feature Handlers
 bot.action('listing_types', handleListingTypes);
 bot.action('toggle_bounties', handleToggleBounties);
 bot.action('toggle_projects', handleToggleProjects);
-bot.action('back_to_settings', handleStartSettings); // Use handleStartSettings instead
+bot.action('back_to_settings', handleStartSettings);
 
-// USD Range handlers
 bot.action('usd_range', handleUsdRange);
 bot.action('set_min_usd', handleSetMinUsd);
 bot.action('set_max_usd', handleSetMaxUsd);
 bot.action('clear_usd_range', handleClearUsdRange);
 
-// Skills handlers
 bot.action('skills', handleSkills);
 bot.action('clear_all_skills', handleClearAllSkills);
 bot.action('back_to_skills', handleBackToSkills);
 
-// View Settings handler
 bot.action('view_settings', handleViewSettings);
 
-// Dynamic skill category handlers
+// Library Action Handlers
+bot.action('my_library', handleMyLibraryAction);
+bot.action('library_active', handleLibraryActiveAction);
+bot.action('library_urgent', handleLibraryUrgentAction);
+bot.action('library_full', handleLibraryFullAction);
+
+// NEW: Enhanced Library Management
+bot.action('library_manage', handleLibraryManage);
+bot.action('library_remove_expired', handleLibraryRemoveExpired);
+bot.action('library_select_items', handleLibrarySelectItems);
+bot.action('library_clear_all_confirm', handleLibraryClearAllConfirm);
+bot.action('library_clear_all_execute', handleLibraryClearAllExecute);
+
+// Individual item deletion
+bot.action(/^library_delete_(.+)$/, handleLibraryDeleteItem);
+
+// Notification Action Handlers
+bot.action(/^save_(.+)$/, handleSaveNotification);
+bot.action(/^dismiss_(.+)$/, handleDismissNotification);
+
+// Dynamic Handlers
 bot.action(/^skill_category_(.+)$/, (ctx) => {
   const category = ctx.match[1] as ParentSkills;
   handleSkillCategory(ctx, category);
 });
 
-// Dynamic skill toggle handlers
 bot.action(/^toggle_skill_(.+)$/, (ctx) => {
   const skillValue = ctx.match[1];
   handleToggleSkill(ctx, skillValue);
 });
 
-// Handle text messages (USD input + cleanup)
+// Text Message Handler
 bot.on('text', async (ctx) => {
   try {
-    // First check if this is USD input
     const handled = await handleUsdInput(ctx, ctx.text);
     
     if (!handled) {
-      // Delete unrecognized messages with gentle guidance
       await ctx.deleteMessage();
-      
-      // Send brief, helpful instruction that auto-deletes
       const instructionMsg = await ctx.reply('💡 Please use the menu buttons above to navigate. They make everything easier!');
       
-      // Delete instruction after 3 seconds
       setTimeout(async () => {
         try {
           await ctx.deleteMessage(instructionMsg.message_id);
-        } catch (e) {
-          // Message might already be deleted, ignore
-        }
+        } catch (e) {}
       }, 3000);
     }
   } catch (error) {
-    // If we can't delete (maybe in a group), just log
     console.log('Could not delete message:', error);
   }
 });
@@ -128,19 +159,14 @@ bot.on('text', async (ctx) => {
 // Start the bot
 if (require.main === module) {
   bot.launch();
-  console.log('🚀 Modular bot is running...');
+  console.log('🚀 Modular bot with Enhanced Library Management is running...');
   
-  // Start the notification scheduler
   if (process.env.NODE_ENV === 'production') {
-    startNotificationScheduler(); // Every hour in production
+    startNotificationScheduler();
   } else {
-    // For development, you can choose:
-    // startTestScheduler(); // Every 2 minutes for testing
-    // OR comment out to disable auto-notifications during development
     console.log('💡 Development mode: Auto-notifications disabled. Use /testnotify to test manually.');
   }
   
-  // Graceful shutdown
   process.on('SIGINT', () => {
     console.log('🛑 Shutting down bot...');
     bot.stop();

@@ -9,14 +9,15 @@ datasource db {
 }
 
 model TelegramUser {
-  id          String                  @id @default(cuid())
-  telegramId  String                  @unique
-  username    String?
-  firstName   String?
-  isActive    Boolean                 @default(true)
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-  preferences NotificationPreference?
+  id                  String                  @id @default(cuid())
+  telegramId          String                  @unique
+  username            String?
+  firstName           String?
+  isActive            Boolean                 @default(true)
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  preferences         NotificationPreference?
+  notificationLibrary NotificationLibrary[]
 }
 
 model NotificationPreference {
@@ -30,4 +31,29 @@ model NotificationPreference {
   updatedAt   DateTime     @updatedAt
   skills      String[]
   user        TelegramUser @relation(fields: [userId], references: [id])
+}
+
+model NotificationLibrary {
+  id               String             @id @default(cuid())
+  telegramUserId   String
+  listingId        String
+  listingTitle     String
+  listingSlug      String
+  sponsorName      String
+  rewardText       String
+  deadline         DateTime
+  listingUrl       String
+  sentAt           DateTime
+  savedAt          DateTime           @default(now())
+  status           NotificationStatus @default(SAVED)
+  
+  // Relations
+  telegramUser     TelegramUser @relation(fields: [telegramUserId], references: [telegramId])
+  
+  @@map("notification_library")
+}
+
+enum NotificationStatus {
+  SAVED
+  DISMISSED
 }

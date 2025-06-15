@@ -1,5 +1,8 @@
 import { EarnListing } from './earnService';
 import { getUserWithPreferences } from '../bot/utils/database';
+import { PrismaClient } from '../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export interface UserNotificationData {
   telegramId: string;
@@ -33,9 +36,6 @@ export function checkUserEligibility(listing: EarnListing, user: UserNotificatio
     );
     if (!hasMatchingSkill) return false;
   }
-  
-  // For now, we'll assume all users are globally eligible
-  // In production, you'd check user's region against listing.region
   
   return true;
 }
@@ -85,6 +85,113 @@ export function formatNotificationMessage(listing: EarnListing): string {
   return message;
 }
 
+// Format notification with action buttons AND store listing data for save functionality
+export function formatNotificationWithActions(listing: EarnListing): object {
+  const message = formatNotificationMessage(listing);
+  const earnUrl = `https://earn.superteam.fun/listings/${listing.slug}?utm_source=telegrambot`;
+  
+  return {
+    text: message,
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "💾 Save to Library", callback_data: `save_${listing.id}` },
+          { text: "❌ Dismiss", callback_data: `dismiss_${listing.id}` }
+        ],
+        [
+          { text: "🔗 View Details", url: earnUrl }
+        ]
+      ]
+    }
+  };
+}
+
+// Save notification to user's library (SIMPLIFIED LOGGING)
+export async function saveNotificationToLibrary(telegramUserId: string, listing: EarnListing): Promise<void> {
+  try {
+    // Format reward text for storage
+    let rewardText = '';
+    if (listing.compensationType === 'variable') {
+      rewardText = 'Variable Comp';
+    } else if (listing.compensationType === 'range' && listing.minRewardAsk && listing.maxRewardAsk) {
+      rewardText = `$${listing.minRewardAsk} - $${listing.maxRewardAsk}`;
+    } else if (listing.usdValue) {
+      const tokenText = listing.token ? ` ${listing.token}` : '';
+      rewardText = `${listing.rewardAmount || listing.usdValue}${tokenText} ($${listing.usdValue})`;
+    } else {
+      rewardText = 'Amount TBD';
+    }
+
+    const earnUrl = `https://earn.superteam.fun/listings/${listing.slug}?utm_source=telegrambot`;
+
+    await prisma.notificationLibrary.create({
+      data: {
+        telegramUserId,
+        listingId: listing.id,
+        listingTitle: listing.title,
+        listingSlug: listing.slug,
+        sponsorName: listing.sponsor.name,
+        rewardText,
+        deadline: listing.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        listingUrl: earnUrl,
+        sentAt: new Date(),
+        status: 'SAVED'
+      }
+    });
+
+    // REDUCED LOGGING - Only in debug mode
+    if (process.env.LOG_LEVEL === 'DEBUG') {
+      console.log(`✅ Saved notification: ${listing.title} for user ${telegramUserId}`);
+    }
+  } catch (error) {
+    console.error('Error saving notification to library:', error);
+  }
+}
+
+// Get user's saved notifications
+export async function getUserSavedNotifications(telegramUserId: string) {
+  try {
+    return await prisma.notificationLibrary.findMany({
+      where: {
+        telegramUserId,
+        status: 'SAVED',
+        deadline: {
+          gte: new Date()
+        }
+      },
+      orderBy: {
+        deadline: 'asc'
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching saved notifications:', error);
+    return [];
+  }
+}
+
+// Clean up expired notifications (SIMPLIFIED LOGGING)
+export async function cleanupExpiredNotifications(): Promise<number> {
+  try {
+    const result = await prisma.notificationLibrary.deleteMany({
+      where: {
+        deadline: {
+          lt: new Date()
+        }
+      }
+    });
+
+    // REDUCED LOGGING - Only show if items were actually deleted
+    if (result.count > 0) {
+      console.log(`🧹 Cleaned up ${result.count} expired notifications`);
+    }
+    return result.count;
+  } catch (error) {
+    console.error('Error cleaning up expired notifications:', error);
+    return 0;
+  }
+}
+
 export async function getAllUsersForNotification(): Promise<UserNotificationData[]> {
   try {
     // This would get all active users from your database
@@ -108,7 +215,7 @@ export async function getAllUsersForNotification(): Promise<UserNotificationData
           minUsdValue: undefined,
           maxUsdValue: undefined,
           bounties: true,
-          projects: false, // Only bounties
+          projects: false,
           skills: ['Writing', 'Research']
         }
       }
@@ -122,7 +229,6 @@ export async function getAllUsersForNotification(): Promise<UserNotificationData
 export async function processNotifications(): Promise<void> {
   console.log('🔄 Processing notifications...');
   
-  // This will be called by a cron job
   const { getNewListings } = await import('./earnService');
   const newListings = await getNewListings();
   
@@ -143,12 +249,9 @@ export async function processNotifications(): Promise<void> {
       const isEligible = checkUserEligibility(listing, user);
       
       if (isEligible) {
-        const message = formatNotificationMessage(listing);
+        const notificationWithActions = formatNotificationWithActions(listing);
         console.log(`✅ Would notify ${user.firstName} (${user.telegramId})`);
-        console.log(`Message preview:\n${message}\n`);
-        
-        // In production, you'd send the actual Telegram message here
-        // await sendTelegramNotification(user.telegramId, message);
+        console.log(`Message preview:\n${notificationWithActions.text}\n`);
       } else {
         console.log(`❌ ${user.firstName} not eligible for this listing`);
       }
