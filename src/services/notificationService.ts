@@ -80,7 +80,7 @@ export function formatNotificationMessage(listing: EarnListing): string {
 🎯 **Skills:** ${skillsText}
 ⏰ **Deadline:** ${deadlineText}
 
-[View Details & Apply](${earnUrl})`;
+`;
 
   return message;
 }

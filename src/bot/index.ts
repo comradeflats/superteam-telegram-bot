@@ -36,7 +36,6 @@ import {
   handleEndingSoonCommand,
   handleClearExpiredCommand,
   handleMyLibraryAction,
-  handleLibraryActiveAction,
   handleLibraryUrgentAction,
   handleLibraryFullAction,
   handleLibraryManage,
@@ -107,7 +106,6 @@ bot.action('view_settings', handleViewSettings);
 
 // Library Action Handlers
 bot.action('my_library', handleMyLibraryAction);
-bot.action('library_active', handleLibraryActiveAction);
 bot.action('library_urgent', handleLibraryUrgentAction);
 bot.action('library_full', handleLibraryFullAction);
 

@@ -33,13 +33,13 @@ ${savedNotifications.slice(0, 3).map((notification, index) => {
 💰 ${notification.rewardText} | ⏰ ${deadline.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     }).join('\n\n')}${savedNotifications.length > 3 ? `\n\n... and ${savedNotifications.length - 3} more items` : ''}`;
 
+    // Simplified keyboard - removed Active button, kept Full List, Urgent, and Manage Items
     const libraryKeyboard = Markup.inlineKeyboard([
       [
-        Markup.button.callback('📊 Active', 'library_active'),
+        Markup.button.callback('📋 Full List', 'library_full'),
         Markup.button.callback('🔥 Urgent', 'library_urgent')
       ],
       [
-        Markup.button.callback('📋 Full List', 'library_full'),
         Markup.button.callback('🧹 Manage Items', 'library_manage')
       ],
       [Markup.button.callback('⬅️ Back to Settings', 'start_settings')]
@@ -50,53 +50,6 @@ ${savedNotifications.slice(0, 3).map((notification, index) => {
   } catch (error) {
     console.error('Error showing library:', error);
     await ctx.answerCbQuery('❌ Error accessing library');
-  }
-}
-
-export async function handleLibraryActiveAction(ctx: BotContext) {
-  try {
-    const savedNotifications = await getUserSavedNotifications(ctx.from.id.toString());
-    const activeNotifications = savedNotifications.filter(n => new Date(n.deadline) > new Date());
-    
-    if (activeNotifications.length === 0) {
-      const message = `📊 **Active Opportunities**
-
-No active opportunities in your library.
-
-Save notifications to keep track of opportunities!`;
-
-      const backKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('⬅️ Back to Library', 'my_library')]
-      ]);
-
-      await ctx.editMessageText(message, { ...backKeyboard, parse_mode: 'Markdown' });
-      return;
-    }
-    
-    const activeText = `📊 **Active Opportunities** (${activeNotifications.length} items)
-
-${activeNotifications.slice(0, 4).map(notification => {
-      const deadline = new Date(notification.deadline);
-      const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
-      
-      return `**${notification.listingTitle}**
-💰 ${notification.rewardText} | ⏰ ${daysLeft}d left
-🔗 [Apply](${notification.listingUrl})`;
-    }).join('\n\n')}${activeNotifications.length > 4 ? `\n\n... and ${activeNotifications.length - 4} more` : ''}`;
-
-    const activeKeyboard = Markup.inlineKeyboard([
-      [
-        Markup.button.callback('🔥 Urgent', 'library_urgent'),
-        Markup.button.callback('📋 Full List', 'library_full')
-      ],
-      [Markup.button.callback('⬅️ Back to Library', 'my_library')]
-    ]);
-
-    await ctx.editMessageText(activeText, { ...activeKeyboard, parse_mode: 'Markdown', disable_web_page_preview: true });
-    
-  } catch (error) {
-    console.error('Error showing active notifications:', error);
-    await ctx.answerCbQuery('❌ Error loading active items');
   }
 }
 
@@ -135,9 +88,9 @@ ${endingSoon.map(notification => {
 🔗 [Apply Now](${notification.listingUrl})`;
     }).join('\n\n')}`;
 
+    // Simplified keyboard - removed Active button
     const urgentKeyboard = Markup.inlineKeyboard([
       [
-        Markup.button.callback('📊 Active', 'library_active'),
         Markup.button.callback('📋 Full List', 'library_full')
       ],
       [Markup.button.callback('⬅️ Back to Library', 'my_library')]
@@ -180,9 +133,9 @@ ${savedNotifications.map((notification, index) => {
 🔗 [View](${notification.listingUrl})`;
     }).join('\n\n')}`;
 
+    // Simplified keyboard - removed Active button
     const fullKeyboard = Markup.inlineKeyboard([
       [
-        Markup.button.callback('📊 Active', 'library_active'),
         Markup.button.callback('🔥 Urgent', 'library_urgent')
       ],
       [Markup.button.callback('⬅️ Back to Library', 'my_library')]

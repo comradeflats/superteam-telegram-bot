@@ -49,7 +49,6 @@ export async function handleShowExample(ctx: BotContext) {
 🎯 **Skills:** React, Javascript, UI/UX Design
 ⏰ **Deadline:** Jun 18, 2025
 
-[View Details & Apply](https://earn.superteam.fun/listings/example?utm_source=telegrambot)
 
 *This is what your notifications will look like!*`;
 
