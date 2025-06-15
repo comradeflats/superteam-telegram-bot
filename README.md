@@ -4,7 +4,8 @@ A production-ready Telegram notification bot for Superteam Earn that provides us
 
 ## 🎬 Demo Video
 
-[Demo Video Link - Coming Soon]
+[Demo Video Link]
+https://drive.google.com/file/d/1OB-ITdmc6J5-hqpj0TRScYiISD_OQomp/view?usp=sharing
 
 ## 🚀 Features
 
